@@ -79,25 +79,34 @@
     complete: function (results) {
       console.log("CSV LOADED", results.data.length);
 
-      results.data.forEach(row => {
-        const lat = parseFloat(row["Lattitude"]);
-        const lng = parseFloat(row["Longitude"]);
+    results.data.forEach((row, index) => {
+  const lat = row["Lattitude"];
+  const lng = row["Longitude"];
 
-        if (isNaN(lat) || isNaN(lng)) return;
+  if (index < 5) {
+    console.log("RAW:", lat, lng);
+  }
 
-        console.log(lat, lng);
+  const latNum = parseFloat(lat);
+  const lngNum = parseFloat(lng);
 
-        const jenis = row["Jenis Faskes"];
-        const warna = warnaFaskes[jenis] || "#000000";
+  if (isNaN(latNum) || isNaN(lngNum)) return;
 
-        const marker = L.circleMarker([lng, lat], {
-          radius: 6,
-          fillColor: warna,
-          color: warna,
-          weight: 1,
-          opacity: 1,
-          fillOpacity: 0.9
-        }).addTo(map);
+  if (index < 5) {
+    console.log("PARSED:", latNum, lngNum);
+  }
+
+  const jenis = row["Jenis Faskes"];
+  const warna = warnaFaskes[jenis] || "#000000";
+
+  L.circleMarker([latNum, lngNum], {
+    radius: 6,
+    fillColor: warna,
+    color: warna,
+    weight: 1,
+    fillOpacity: 0.9
+  }).addTo(map);
+});
 
         const gmapsLink = `https://www.google.com/maps?q=${lat},${lng}`;
 
