@@ -90,7 +90,7 @@
         const jenis = row["Jenis Faskes"];
         const warna = warnaFaskes[jenis] || "#000000";
 
-        const marker = L.circleMarker([lat, lng], {
+        const marker = L.circleMarker([lng, lat], {
           radius: 6,
           fillColor: warna,
           color: warna,
