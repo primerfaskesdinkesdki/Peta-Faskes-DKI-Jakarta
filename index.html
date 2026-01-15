@@ -5,21 +5,14 @@
   <title>Peta Faskes DKI Jakarta</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <!-- Leaflet CSS -->
   <link
     rel="stylesheet"
     href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
   />
 
   <style>
-    body {
-      margin: 0;
-      padding: 0;
-    }
-    #map {
-      width: 100%;
-      height: 100vh;
-    }
+    body { margin: 0; padding: 0; }
+    #map { width: 100%; height: 100vh; }
     .legend {
       background: white;
       padding: 10px;
@@ -41,20 +34,15 @@
 
 <div id="map"></div>
 
-<!-- Leaflet JS -->
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-
-<!-- PapaParse -->
 <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
 
 <script>
   console.log("SCRIPT JALAN");
 
-  // 🔗 CSV Google Sheets (SUDAH PUBLISH)
   const csvUrl =
     "https://docs.google.com/spreadsheets/d/e/2PACX-1vTf9sVvdxLpwwdxiJGtOCHgY2lJjDZyvjgNDKEu0J1q5gyjDu6Z6owVNYq44Y0VBAAFZYVlvQ2BtA--/pub?output=csv";
 
-  // 🎨 Warna berdasarkan jenis faskes
   const warnaFaskes = {
     "Klinik Pratama": "#35824f",
     "Klinik Utama": "#9edb75",
@@ -65,71 +53,54 @@
     "Griya Sehat": "#eb748d"
   };
 
-  // 🗺️ Init map
   const map = L.map("map").setView([-6.2, 106.8], 11);
 
   L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
     attribution: "© OpenStreetMap"
   }).addTo(map);
 
-  // 📥 Load CSV
   Papa.parse(csvUrl, {
     download: true,
     header: true,
     complete: function (results) {
       console.log("CSV LOADED", results.data.length);
 
-    results.data.forEach((row, index) => {
-  const lat = row["Lattitude"];
-  const lng = row["Longitude"];
+      results.data.forEach(function (row) {
+        const lat = parseFloat(row["Lattitude"]);
+        const lng = parseFloat(row["Longitude"]);
 
-  if (index < 5) {
-    console.log("RAW:", lat, lng);
-  }
+        if (isNaN(lat) || isNaN(lng)) return;
 
-  const latNum = parseFloat(lat);
-  const lngNum = parseFloat(lng);
+        const jenis = row["Jenis Faskes"];
+        const warna = warnaFaskes[jenis] || "#000000";
 
-  if (isNaN(latNum) || isNaN(lngNum)) return;
+        const marker = L.circleMarker([lat, lng], {
+          radius: 6,
+          fillColor: warna,
+          color: warna,
+          weight: 1,
+          fillOpacity: 0.9
+        }).addTo(map);
 
-  if (index < 5) {
-    console.log("PARSED:", latNum, lngNum);
-  }
+        const gmapsLink = "https://www.google.com/maps?q=" + lat + "," + lng;
 
-  const jenis = row["Jenis Faskes"];
-  const warna = warnaFaskes[jenis] || "#000000";
-
-  L.circleMarker([latNum, lngNum], {
-    radius: 6,
-    fillColor: warna,
-    color: warna,
-    weight: 1,
-    fillOpacity: 0.9
-  }).addTo(map);
-});
-
-        const gmapsLink = `https://www.google.com/maps?q=${lat},${lng}`;
-
-        marker.bindPopup(`
-          <b>${row["Nama Faskes"] || "-"}</b><br>
-          ${jenis || "-"}<br>
-          ${row["Alamat"] || "-"}<br><br>
-          <a href="${gmapsLink}" target="_blank">
-            📍 Buka di Google Maps
-          </a>
-        `);
+        marker.bindPopup(
+          "<b>" + (row["Nama Faskes"] || "-") + "</b><br>" +
+          (jenis || "-") + "<br>" +
+          (row["Alamat"] || "-") + "<br><br>" +
+          "<a href='" + gmapsLink + "' target='_blank'>📍 Buka di Google Maps</a>"
+        );
       });
     }
   });
 
-  // 🧭 Legend
   const legend = L.control({ position: "bottomright" });
   legend.onAdd = function () {
     const div = L.DomUtil.create("div", "legend");
     div.innerHTML = "<b>Jenis Faskes</b><br>";
     for (const key in warnaFaskes) {
       div.innerHTML +=
-        `<i style="background:${warnaFaskes[key]}"></i>${key}<br>`;
+        "<i style='background:" + warnaFaskes[key] + "'></i>" + key + "<br>";
     }
     return div;
   };
